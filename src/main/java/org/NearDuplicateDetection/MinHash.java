@@ -1,4 +1,4 @@
-package org.wikiclean;
+package org.NearDuplicateDetection;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -26,7 +26,7 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 
-import org.wikiclean.MultiplyShiftHash;
+import org.NearDuplicateDetection.MultiplyShiftHash;
 import tl.lin.data.array.ArrayListOfLongsWritable;
 
 
@@ -94,6 +94,8 @@ public class MinHash extends Configured implements Tool {
         public void map(LongWritable key, Text value, Context context)
                 throws IOException, InterruptedException {
 
+            String docid = value.toString().split(",")[0];
+
             Matcher m = sentenceRegex.matcher(value.toString());
             int sentenceCount = 0;
             while (m.find()){
@@ -118,7 +120,7 @@ public class MinHash extends Configured implements Tool {
                         }
                     }
 
-                    SENTENCE.set(sentence + " " + key.get() + ":" + sentenceCount);
+                    SENTENCE.set(sentence + " " + docid + ":" + sentenceCount);
                     Random r = new Random(sigSeed);
                     for (int j = 0; j < draw; j++){
                         SIGNATURE.clear();

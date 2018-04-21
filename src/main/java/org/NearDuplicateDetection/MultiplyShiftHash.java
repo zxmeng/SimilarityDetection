@@ -1,4 +1,4 @@
-package org.wikiclean;
+package org.NearDuplicateDetection;
 
 import java.util.Random;
 
