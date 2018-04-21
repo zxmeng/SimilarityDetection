@@ -1,0 +1,1 @@
+hadoop jar target/wikiclean-1.1-SNAPSHOT.jar org.wikiclean.MinHash -input resources/enwiki-20120104-id12.xml -output output
