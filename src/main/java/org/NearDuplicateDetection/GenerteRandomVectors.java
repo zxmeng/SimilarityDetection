@@ -10,13 +10,13 @@ public class GenerteRandomVectors {
     private int vecLen;
     private ArrayList<ArrayList<Double>> randomVectors = new ArrayList<ArrayList<Double>>();
 
-    public GenerteRandomVectors(int sigLen, int vecLen, long seeds[]) {
-        this.seeds = seeds;
-        this.sigLen = sigLen;
+    public GenerteRandomVectors(int vecLen, int sigLen, long seeds[]) {
         this.vecLen = vecLen;
+        this.sigLen = sigLen;
+        this.seeds = seeds;
 
         for (int i = 0; i < sigLen; i++) {
-            ArrayList<Double> v = generateUnitRandomVector(vecLen, seeds[i]);
+            ArrayList<Double> v = generateUnitRandomVector(seeds[i]);
             randomVectors.add(v);
         }
     }
@@ -25,14 +25,14 @@ public class GenerteRandomVectors {
         return randomVectors;
     }    
 
-    public static ArrayList<Double> generateUnitRandomVector(int length, Long seed) {
+    private ArrayList<Double> generateUnitRandomVector(Long seed) {
 
         double x, y, z;
         Random r = new Random(seed);
-        ArrayList<Double> vector = new ArrayList<Double>(length);
+        ArrayList<Double> vector = new ArrayList<Double>();
 
         double normalizationFactor = 0;
-        for (int i = 0; i < length; i++) {
+        for (int i = 0; i < vecLen; i++) {
         // find a uniform random point (x, y) inside unit circle
             do {
                 x = 2.0 * r.nextDouble() - 1.0;
@@ -44,12 +44,12 @@ public class GenerteRandomVectors {
             // apply the Box-Muller formula to get standard Gaussian z
             double f = (double) (x * Math.sqrt(-2.0 * Math.log(z) / z));
             normalizationFactor += Math.pow(f, 2.0);
-            vector.set(i, f);
+            vector.add(f);
         }
 
         /* normalize vector */
         normalizationFactor = Math.sqrt(normalizationFactor);
-        for (int i = 0; i < length; i++) {
+        for (int i = 0; i < vecLen; i++) {
           double val = vector.get(i);
           double newf = (double) (val / normalizationFactor);
           vector.set(i, newf);

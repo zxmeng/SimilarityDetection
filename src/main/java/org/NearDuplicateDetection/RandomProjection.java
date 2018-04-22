@@ -64,11 +64,11 @@ public class RandomProjection extends Configured implements Tool {
                 throws IOException, InterruptedException {
 
             String[] tokens = value.toString().split(",");
-            String docId = Integer.toString(Integer.parseInt(tokens[0]));
-            ArrayList<Double> docVec = new ArrayList<>(vecLen);
+            String docId = Integer.toString(Float.valueOf(tokens[0]).intValue());
+            ArrayList<Double> docVec = new ArrayList<>();
 
             for (int i = 0; i < vecLen; i++) {
-                docVec.set(i, Double.parseDouble(tokens[i+1]));
+                docVec.add(Double.parseDouble(tokens[i+1]));
             }
 
             SENTENCE.set(docId);

@@ -95,7 +95,7 @@ object MinHashS extends {
         val shingleCount = sentence.length() - shingleLen + 1
         if (shingleCount > minLen && shingleCount < maxLen) {
           // val value = sentence + " " + docid + ":" + sentenceCount
-          val value = docid + ":" + sentenceCount
+          val value = docid + ":" + sentenceCount + ", " + sentence
 
           var hashValue = new Array[String](numHashes)
           for ( i <- 0 to (shingleCount - 1) ) {
@@ -128,7 +128,8 @@ object MinHashS extends {
     .groupByKey()
     .mapValues(_.toList)
     .filter(p => (p._2.size > 1))
-    .map(p => (p._1, p._2.mkString("[", ",", "]")))
+    .flatMap(p => (p._2.map(s => (p._1, s))))
+    // .map(p => (p._1, p._2.mkString("[", ",", "]")))
     .saveAsTextFile(args.output())
   }
 }
