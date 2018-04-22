@@ -60,12 +60,17 @@ public class DumpEnWikiToPlainText {
     wikipedia.stream()
         .filter(page -> !page.contains("<ns>") || page.contains("<ns>0</ns>"))
         .forEach(page -> {
-          String s = cleaner.clean(page).replaceAll("\\n+", " ");
+          String s = cleaner.clean(page);
+          
+//          String s = cleaner.clean(page).replaceAll("\\n+", " ");
           if (s.startsWith("#REDIRECT")) return;
-
+          
 //          writer.println(cleaner.getId(page) + ", " + cleaner.getTitle(page).replaceAll("\\n+", " ") + "\t" + s);
-          writer.println("(" + cleaner.getId(page) + ", " + s + ")");
-//          writer.println(cleaner.getId(page) + ", " + s);
+//          writer.println("(" + cleaner.getId(page) + ", " + s + ")");
+          String lines[] = s.split("[\\r\\n]+");
+          for (int i = 0; i < lines.length; i++){
+        	  writer.println(cleaner.getId(page) + "\t" + lines[i]);
+          }
         });
 
     writer.close();
