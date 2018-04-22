@@ -176,22 +176,22 @@ public class MinHash extends Configured implements Tool {
         int numHashes = 20;
 
         @Option(name = "-hashbits", metaVar = "[num]", usage = "number of hash bits")
-        int numHashBits = 30;
+        int numHashBits = 60;
 
         @Option(name = "-siglen", metaVar = "[num]", usage = "length of signature")
-        int sigLen = 8;
+        int sigLen = 10;
 
         @Option(name = "-draw", metaVar = "[num]", usage = "draw times")
-        int draw = 5;
+        int draw = 10;
 
         @Option(name = "-shingle", metaVar = "[num]", usage = "length of shingle")
-        int shingleLen = 15;
+        int shingleLen = 12;
 
         @Option(name = "-rseed", metaVar = "[num]", usage = "random seed")
         long randSeed = 1123456;
 
         @Option(name = "-min", metaVar = "[num]", usage = "min length of sentence")
-        int minLen = 20;
+        int minLen = 75;
 
         @Option(name = "-max", metaVar = "[num]", usage = "max length of sentence")
         int maxLen = 600;
