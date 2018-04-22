@@ -27,7 +27,7 @@ class ConfMinHash(args: Seq[String]) extends ScallopConf(args) {
   verify()
 }
 
-class PartitionerMinHash(partitions: Int) extends Partitioner {
+class PartitionerPairsMinHash(partitions: Int) extends Partitioner {
   def numPartitions: Int = partitions
   def getPartition(key: Any) : Int = {
     val k = key.asInstanceOf[(String, String)]

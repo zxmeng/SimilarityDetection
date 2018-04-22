@@ -3,3 +3,6 @@ hadoop jar target/NearDuplicateDetection-1.1-SNAPSHOT.jar org.NearDuplicateDetec
 spark-submit --class org.NearDuplicateDetection.MinHashS target/NearDuplicateDetection-1.1-SNAPSHOT.jar --input resources/sample.txt --output output-scala-mh
 
 hadoop jar target/NearDuplicateDetection-1.1-SNAPSHOT.jar org.NearDuplicateDetection.RandomProjection -input resources/test.txt -output output-java-rj
+
+
+ mvn exec:java -Dexec.mainClass=org.NearDuplicateDetection.GenerteRandomVectors 

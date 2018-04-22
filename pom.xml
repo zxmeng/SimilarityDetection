@@ -115,15 +115,6 @@
       </plugin>
 
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.2.1</version>
-        <configuration>
-            <mainClass>org.wikiclean.DumpEnWikiToPlainText.main</mainClass>
-        </configuration>
-      </plugin>
-
-      <plugin>
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>nexus-staging-maven-plugin</artifactId>
         <version>1.6.8</version>
@@ -184,11 +175,6 @@
       <version>4.12</version>
       <scope>test</scope>
     </dependency>
-    <dependency> <!-- for org.apache.tools.bzip2.CBZip2InputStream -->
-      <groupId>org.apache.ant</groupId>
-      <artifactId>ant</artifactId>
-      <version>1.10.1</version>
-    </dependency>
 
     <dependency>
       <groupId>commons-io</groupId>
@@ -202,11 +188,6 @@
     </dependency>
 
     <dependency>
-      <groupId>edu.stanford.nlp</groupId>
-      <artifactId>stanford-corenlp</artifactId>
-      <version>3.7.0</version>
-    </dependency>
-    <dependency>
       <groupId>args4j</groupId>
       <artifactId>args4j</artifactId>
       <version>2.33</version>
@@ -216,12 +197,6 @@
       <groupId>io.bespin</groupId>
       <artifactId>bespin</artifactId>
       <version>1.0.3</version>
-    </dependency>
-
-    <dependency>
-      <groupId>info.bliki.wiki</groupId>
-      <artifactId>bliki-core</artifactId>
-      <version>3.1.0</version>
     </dependency>
 
   </dependencies>

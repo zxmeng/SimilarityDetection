@@ -11,23 +11,21 @@ import scala.util.Random
 
 import org.NearDuplicateDetection._
 
-class ConfMinHash(args: Seq[String]) extends ScallopConf(args) {
-  mainOptions = Seq(input, output, reducers, hashfuncs, hashbits, siglen, draw, shingle, rseed, min, max)
+class ConfRandProj(args: Seq[String]) extends ScallopConf(args) {
+  mainOptions = Seq(input, output, reducers, veclen, siglen, permutate, threshold, window, rseed)
   val input = opt[String](descr = "input path", required = true)
   val output = opt[String](descr = "output path", required = true)
   val reducers = opt[Int](descr = "number of reducers", required = false, default = Some(1))
-  val hashfuncs = opt[Int](descr = "number of hash functions", required = false, default = Some(20))
-  val hashbits = opt[Int](descr = "number of hash bits", required = false, default = Some(60))
-  val siglen = opt[Int](descr = "length of signature", required = false, default = Some(10))
-  val draw = opt[Int](descr = "draw times", required = false, default = Some(10))
-  val shingle = opt[Int](descr = "length of shingle", required = false, default = Some(12))
+  val veclen = opt[Int](descr = "length of vector", required = false, default = Some(400))
+  val siglen = opt[Int](descr = "length of signature", required = false, default = Some(100))
+  val permutate = opt[Int](descr = "permutation times", required = false, default = Some(10))
+  val threshold = opt[Int](descr = "distance threshold", required = false, default = Some(15))
+  val window = opt[Int](descr = "window size", required = false, default = Some(10))
   val rseed = opt[Int](descr = "random seed", required = false, default = Some(1123456))
-  val min = opt[Int](descr = "min length of sentence", required = false, default = Some(75))
-  val max = opt[Int](descr = "max length of sentence", required = false, default = Some(600))
   verify()
 }
 
-class PartitionerMinHash(partitions: Int) extends Partitioner {
+class PartitionerRandProj(partitions: Int) extends Partitioner {
   def numPartitions: Int = partitions
   def getPartition(key: Any) : Int = {
     val k = key.asInstanceOf[(String, String)]
@@ -35,42 +33,36 @@ class PartitionerMinHash(partitions: Int) extends Partitioner {
   }
 }
 
-object MinHashS extends {
+object RandomProjectionS extends {
   val log = Logger.getLogger(getClass().getName())
 
   def main(argv: Array[String]) {
-    val args = new ConfMinHash(argv)
+    val args = new ConfRandProj(argv)
 
-    val numHashes = args.hashfuncs()
-    val numHashBits = args.hashbits()
+    val vecLen = args.veclen()
     val sigLen = args.siglen()
-    val draw = args.draw()
-    val shingleLen = args.shingle()
+    val permNo = args.permutate()
+    val threshold = args.threshold()
+    val winSize = args.window()
     val randSeed = args.rseed()
-    val minLen = args.min()
-    val maxLen = args.max()
 
     log.info("Input: " + args.input())
     log.info("Output: " + args.output())
     log.info("Number of reducers: " + args.reducers())
-    log.info("Number of hash functions: " + numHashes)
-    log.info("Number of hash bits: " + numHashBits)
+    log.info("Length of vector: " + vecLen)
     log.info("Length of signature: " + sigLen)
-    log.info("Draw times: " + draw)
-    log.info("Length of shingle: " + shingleLen)
+    log.info("Permutation times: " + permNo)
+    log.info("Distance threshold: " + threshold)
+    log.info("Window size: " + winSize)
     log.info("Random seed: " + randSeed)
-    log.info("Min length of sentence: " + minLen)
-    log.info("Max length of sentence: " + maxLen)
-
-    val conf = new SparkConf().setAppName("MinHash")
+    
+    val conf = new SparkConf().setAppName("RandomProjection")
     val sc = new SparkContext(conf)
 
     val outputDir = new Path(args.output())
     FileSystem.get(sc.hadoopConfiguration).delete(outputDir, true)
 
     val textFile = sc.textFile(args.input())
-    val pattern = new Regex("[\\s]*([A-Z\"][^.!?]*(?:[.!?](?!['\"]?\\s|$)[^.!?]*)*[.!?]?['\"]?)\\s*$?")
-    var minhash = new Array[Long](numHashes)
 
     val r = new scala.util.Random(randSeed)
     val seeds = new Array[Long](numHashes)
@@ -78,12 +70,12 @@ object MinHashS extends {
       seeds(i) = r.nextLong
     }
     val sigSeed = r.nextLong
-    val hashFamily = new MultiplyShiftHashS(numHashBits, seeds)
 
     textFile
     .flatMap(line => {
       val tokens = line.split(",")
       val docid = tokens(0)
+      val stncid = tokens(1)
       val page = line.substring(docid.length + 2)
 
       val matches = pattern.findAllIn(page).toList

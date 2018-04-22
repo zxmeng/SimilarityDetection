@@ -65,19 +65,25 @@ public class RandomProjection extends Configured implements Tool {
 
             String[] tokens = value.toString().split(",");
             String docId = Integer.toString(Float.valueOf(tokens[0]).intValue());
+            String stncId = Integer.toString(Float.valueOf(tokens[1]).intValue());
+            String dsId = dosId + ":" + stncId;
             ArrayList<Double> docVec = new ArrayList<>();
 
             for (int i = 0; i < vecLen; i++) {
-                docVec.add(Double.parseDouble(tokens[i+1]));
+                docVec.add(Double.parseDouble(tokens[i+2));
             }
 
-            SENTENCE.set(docId);
+            System.out.println("Checkpoint 1");
+            SENTENCE.set(dsId);
             Random r = new Random(randSeed);
             for (int j = 0; j < permNo; j++){
+                // System.out.println("Checkpoint 2 [" + j);
                 SIGNATURE.clear();
                 for(int i = 0; i < sigLen; i++){
+                    // System.out.println("Checkpoint 3 [" + i);
                     double dp = 0;
-                    for (int k = 0; k < vecLen; j++) {
+                    for (int k = 0; k < vecLen; k++) {
+                        // System.out.println("Checkpoint 4 [" + k);
                         dp += docVec.get(k) * randomVectors.get(i).get(k);
                     }
                     if (dp > 0) {
@@ -123,7 +129,7 @@ public class RandomProjection extends Configured implements Tool {
                     ArrayListOfIntsWritable sig = iterator.next();
                     int dist = 0;
                     for (int i = 0; i < sig.size(); i++) {
-                        if (key.get(i) == sig.get(i)) {
+                        if (key.get(i) != sig.get(i)) {
                             dist++;
                         }
                         if (dist >= threshold) {

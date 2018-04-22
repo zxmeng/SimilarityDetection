@@ -16,6 +16,7 @@ public class GenerteRandomVectors {
         this.seeds = seeds;
 
         for (int i = 0; i < sigLen; i++) {
+            System.out.println("Generating random vector......\n");
             ArrayList<Double> v = generateUnitRandomVector(seeds[i]);
             randomVectors.add(v);
         }
@@ -56,5 +57,15 @@ public class GenerteRandomVectors {
         }
         
         return vector;
+    }
+
+    public static void main(String[] argv) throws Exception {
+        ArrayList<ArrayList<Double>> randomVectors = new ArrayList<ArrayList<Double>>();
+        long[] rseed = new long[100];
+        Random r = new Random(1123456);
+        for (int i = 0; i < 100; i++) {
+            rseed[i] = r.nextLong();
+        }
+        randomVectors = new GenerteRandomVectors(400, 100, rseed).getRandomVectors();
     }
 }
