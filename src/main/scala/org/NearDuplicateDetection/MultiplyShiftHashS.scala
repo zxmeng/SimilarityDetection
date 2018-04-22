@@ -2,7 +2,7 @@ package org.NearDuplicateDetection.MultiplyShiftHashS
 
 import scala.math._
 
-class MultiplyShiftHashS(numHashBits: Int, seeds: Array[Long]) extends {
+class MultiplyShiftHashS(numHashBits: Int, seeds: Array[Long]) extends Serializable {
   val MAXLENGTH = 10000;
   val LONGSIZE = 64
   var acoeffmatrix = Array.ofDim[Long](seeds.length, MAXLENGTH); 

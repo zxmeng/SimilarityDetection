@@ -120,7 +120,8 @@ public class MinHash extends Configured implements Tool {
                         }
                     }
 
-                    SENTENCE.set(sentence + " " + docid + ":" + sentenceCount);
+                    // SENTENCE.set(sentence + " " + docid + ":" + sentenceCount);
+                    SENTENCE.set(docid + ":" + sentenceCount);
                     Random r = new Random(sigSeed);
                     for (int j = 0; j < draw; j++){
                         SIGNATURE.clear();

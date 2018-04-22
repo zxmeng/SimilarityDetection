@@ -94,7 +94,8 @@ object MinHashS extends {
         }
         val shingleCount = sentence.length() - shingleLen + 1
         if (shingleCount > minLen && shingleCount < maxLen) {
-          val value = sentence + " " + docid + ":" + sentenceCount
+          // val value = sentence + " " + docid + ":" + sentenceCount
+          val value = docid + ":" + sentenceCount
 
           var hashValue = new Array[String](numHashes)
           for ( i <- 0 to (shingleCount - 1) ) {
@@ -110,14 +111,14 @@ object MinHashS extends {
           }
 
           val r = new scala.util.Random(sigSeed)
-          var key = List[(Array[Long], String)]()
+          var key = List[(String, String)]()
           for ( j <- 0 to (draw -1) ) {
             var signature = new Array[Long](sigLen)
             for (i <- 0 to (sigLen - 1) ) {
               val x = r.nextInt(numHashes)
               signature(i) = minhash(x)
             }
-            key = key ++ List((signature, value))
+            key = key ++ List((signature.mkString("[", ", ", "]"), value))
           }
           sentenceCount += 1
           key
@@ -125,6 +126,9 @@ object MinHashS extends {
       })
     })
     .groupByKey()
+    .mapValues(_.toList)
+    .filter(p => (p._2.size > 1))
+    .map(p => (p._1, p._2.mkString("[", ", ", "]")))
     .saveAsTextFile(args.output())
   }
 }
