@@ -1,4 +1,4 @@
-package org.NearDuplicateDetection.MinHashS
+package org.NearDuplicateDetection
 
 import org.apache.log4j._
 import org.apache.hadoop.fs._
@@ -9,7 +9,7 @@ import org.apache.spark.Partitioner
 import scala.util.matching.Regex
 import scala.util.Random 
 
-import org.NearDuplicateDetection.MultiplyShiftHashS._
+import org.NearDuplicateDetection._
 
 class ConfMinHash(args: Seq[String]) extends ScallopConf(args) {
   mainOptions = Seq(input, output, reducers, hashfuncs, hashbits, siglen, draw, shingle, rseed, min, max)
@@ -118,7 +118,7 @@ object MinHashS extends {
               val x = r.nextInt(numHashes)
               signature(i) = minhash(x)
             }
-            key = key ++ List((signature.mkString("[", ", ", "]"), value))
+            key = key ++ List((signature.mkString("[", ",", "]"), value))
           }
           sentenceCount += 1
           key
@@ -128,7 +128,7 @@ object MinHashS extends {
     .groupByKey()
     .mapValues(_.toList)
     .filter(p => (p._2.size > 1))
-    .map(p => (p._1, p._2.mkString("[", ", ", "]")))
+    .map(p => (p._1, p._2.mkString("[", ",", "]")))
     .saveAsTextFile(args.output())
   }
 }

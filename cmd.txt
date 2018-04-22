@@ -1,3 +1,5 @@
-hadoop jar target/NearDuplicateDetection-1.1-SNAPSHOT org.wikiclean.MinHash -input resources/sample.txt -output output-java
+hadoop jar target/NearDuplicateDetection-1.1-SNAPSHOT.jar org.NearDuplicateDetection.MinHash -input resources/sample.txt -output output-java-mh
 
-spark-submit --class org.NearDuplicateDetection.MinHashS.MinHashS target/NearDuplicateDetection-1.1-SNAPSHOT.jar --input resources/sample.txt --output output-scale
+spark-submit --class org.NearDuplicateDetection.MinHashS target/NearDuplicateDetection-1.1-SNAPSHOT.jar --input resources/sample.txt --output output-scala-mh
+
+hadoop jar target/NearDuplicateDetection-1.1-SNAPSHOT.jar org.NearDuplicateDetection.RandomProjection -input resources/sample.txt -output output-java-rj

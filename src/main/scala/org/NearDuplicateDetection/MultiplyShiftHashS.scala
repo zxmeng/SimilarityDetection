@@ -1,4 +1,4 @@
-package org.NearDuplicateDetection.MultiplyShiftHashS
+package org.NearDuplicateDetection
 
 import scala.math._
 

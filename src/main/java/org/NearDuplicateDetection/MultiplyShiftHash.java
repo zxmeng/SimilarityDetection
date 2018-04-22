@@ -17,11 +17,11 @@ import java.util.Random;
 
 public class MultiplyShiftHash {
 
-    long []seeds;
-    int MAXLENGTH = 10000;
-    long acoeffmatrix[][]; 
-    long bcoeffmatrix[][]; 
-    int numHashBits;
+    private long []seeds;
+    private int MAXLENGTH = 10000;
+    private long acoeffmatrix[][]; 
+    private long bcoeffmatrix[][]; 
+    private int numHashBits;
 
     /**
     * Initializes family of |seeds| hash functions according to seeds. Each
