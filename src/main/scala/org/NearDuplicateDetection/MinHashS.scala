@@ -39,6 +39,8 @@ object MinHashS extends {
   val log = Logger.getLogger(getClass().getName())
 
   def main(argv: Array[String]) {
+    val start_time = System.nanoTime
+
     val args = new ConfMinHash(argv)
 
     val numHashes = args.hashfuncs()
@@ -93,6 +95,7 @@ object MinHashS extends {
           minhash(i) = Long.MaxValue
         }
         val shingleCount = sentence.length() - shingleLen + 1
+        var key = List[(String, String)]()
         if (shingleCount > minLen && shingleCount < maxLen) {
           // val value = sentence + " " + docid + ":" + sentenceCount
           val value = docid + ":" + sentenceCount + ", " + sentence
@@ -111,7 +114,6 @@ object MinHashS extends {
           }
 
           val r = new scala.util.Random(sigSeed)
-          var key = List[(String, String)]()
           for ( j <- 0 to (draw -1) ) {
             var signature = new Array[Long](sigLen)
             for (i <- 0 to (sigLen - 1) ) {
@@ -120,9 +122,9 @@ object MinHashS extends {
             }
             key = key ++ List((signature.mkString("[", ",", "]"), value))
           }
-          sentenceCount += 1
-          key
-        } else List()
+        }
+        sentenceCount += 1
+        key
       })
     })
     .groupByKey()
@@ -131,5 +133,8 @@ object MinHashS extends {
     .flatMap(p => (p._2.map(s => (p._1, s))))
     // .map(p => (p._1, p._2.mkString("[", ",", "]")))
     .saveAsTextFile(args.output())
+
+    val duration = (System.nanoTime - start_time) / 1e9d
+    println("Running time: " + duration.toString)
   }
 }

@@ -10,7 +10,6 @@ import scala.util.matching.Regex
 import scala.util.Random
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.Queue
-import scala.util.control.Breaks._
 
 import org.NearDuplicateDetection._
 
@@ -40,6 +39,8 @@ object RandomProjectionS extends {
   val log = Logger.getLogger(getClass().getName())
 
   def main(argv: Array[String]) {
+    val start_time = System.nanoTime
+
     val args = new ConfRandProj(argv)
 
     val vecLen = args.veclen()
@@ -116,15 +117,12 @@ object RandomProjectionS extends {
         sig_docs.foreach(sd => {
           var dist = 0
           for (i <- 1 to sigLen) {
-            if (sd._1(i) != s(i)) {
+            if (sd._1(i) != p._1(i)) {
               dist += 1
-              if (dist >= threshold) {
-                break
-              }
             }
-            if (dist < threshold) {
-              output ++ List((dist, s + ", " + sd._2))
-            }
+          }
+          if (dist < threshold) {
+            output ++ List((dist, s + ", " + sd._2))
           }
         })
         sig_docs.enqueue((p._1, s))
@@ -135,5 +133,8 @@ object RandomProjectionS extends {
       })
     })
     .saveAsTextFile(args.output())
+
+    val duration = (System.nanoTime - start_time) / 1e9d
+    println("Running time: " + duration.toString)
   }
 }

@@ -23,9 +23,6 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 
-// import tl.lin.data.pair.PairOfStringLong;
-// import tl.lin.data.array.ArrayListOfLongsWritable;
-
 
 public class Cluster extends Configured implements Tool {
     private static final Logger LOG = Logger.getLogger(Cluster.class);
