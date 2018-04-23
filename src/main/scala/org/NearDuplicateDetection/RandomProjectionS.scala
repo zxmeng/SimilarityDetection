@@ -75,8 +75,8 @@ object RandomProjectionS extends {
     textFile
     .flatMap(line => {
       val tokens = line.split(",")
-      val docid = tokens(0)
-      val stncid = tokens(1)
+      val docid = tokens(0).toString
+      val stncid = tokens(1).toString
       val docstncid = docid + ":" + stncid
       var temp = new ListBuffer[Double]()
       for (t <- 0 to (tokens.length - 3) ) {
@@ -94,9 +94,9 @@ object RandomProjectionS extends {
             dp += docVec(k) * randomVectors(i)(k);
           }
           if (dp >= 0) {
-            signature(i) = 1
+            signature(i+1) = 1
           } else {
-            signature(i) = 0
+            signature(i+1) = 0
           } 
         }
         key = key ++ List((signature.mkString("[", ",", "]"), docstncid))
