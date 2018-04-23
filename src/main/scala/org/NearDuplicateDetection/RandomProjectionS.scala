@@ -9,6 +9,8 @@ import org.apache.spark.Partitioner
 import scala.util.matching.Regex
 import scala.util.Random
 import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.Queue
+import scala.util.control.Breaks._
 
 import org.NearDuplicateDetection._
 
@@ -72,11 +74,13 @@ object RandomProjectionS extends {
     }
     val randomVectors = new GenerteRandomVectorsS(vecLen, sigLen, seeds).getRandomVectors()
 
+    var sig_docs = Queue[(List[Int], String)]()
+
     textFile
     .flatMap(line => {
       val tokens = line.split(",")
-      val docid = tokens(0).toString
-      val stncid = tokens(1).toString
+      val docid = tokens(0).toFloat.toInt.toString
+      val stncid = tokens(1).toFloat.toInt.toString
       val docstncid = docid + ":" + stncid
       var temp = new ListBuffer[Double]()
       for (t <- 0 to (tokens.length - 3) ) {
@@ -84,27 +88,52 @@ object RandomProjectionS extends {
       }
       var docVec = temp.toList
       val r = new Random(randSeed)
-      var key = List[(String, String)]()
+      var key = List[(List[Int], String)]()
       for (j <- 0 to (permNo - 1) ) {
-        var signature = new Array[Double](sigLen + 1)
-        signature(0) = j
+        var signature = List[Int]()
+        signature = signature ++ List((j))
         for (i <- 0 to (sigLen - 1) ) {
           var dp = 0.0
           for (k <- 0 to (vecLen - 1) ) {
             dp += docVec(k) * randomVectors(i)(k);
           }
           if (dp >= 0) {
-            signature(i+1) = 1
+            signature = signature ++ List((1))
           } else {
-            signature(i+1) = 0
+            signature = signature ++ List((0))
           } 
         }
-        key = key ++ List((signature.mkString("[", ",", "]"), docstncid))
+        key = key ++ List((signature, docstncid))
         docVec = r.shuffle(docVec)
       }
       key
     })
     .groupByKey()
+    .mapValues(_.toList)
+    .flatMap(p => {
+      p._2.flatMap(s => {
+        var output = List()
+        sig_docs.foreach(sd => {
+          var dist = 0
+          for (i <- 1 to sigLen) {
+            if (sd._1(i) != s(i)) {
+              dist += 1
+              if (dist >= threshold) {
+                break
+              }
+            }
+            if (dist < threshold) {
+              output ++ List((dist, s + ", " + sd._2))
+            }
+          }
+        })
+        sig_docs.enqueue((p._1, s))
+        if (sig_docs.size > winSize) {
+          sig_docs.dequeue()
+        }
+        output
+      })
+    })
     .saveAsTextFile(args.output())
   }
 }
