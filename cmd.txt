@@ -2,7 +2,16 @@ hadoop jar target/NearDuplicateDetection-1.1-SNAPSHOT.jar org.NearDuplicateDetec
 
 spark-submit --class org.NearDuplicateDetection.MinHashS target/NearDuplicateDetection-1.1-SNAPSHOT.jar --input resources/sample.txt --output output-scala-mh
 
-hadoop jar target/NearDuplicateDetection-1.1-SNAPSHOT.jar org.NearDuplicateDetection.RandomProjection -input resources/test.txt -output output-java-rj
+hadoop jar target/NearDuplicateDetection-1.1-SNAPSHOT.jar org.NearDuplicateDetection.RandomProjection -input output_vector.txt -output output-java-rj
 
 
  mvn exec:java -Dexec.mainClass=org.NearDuplicateDetection.GenerteRandomVectors 
+
+spark-submit --class org.NearDuplicateDetection.RandomProjectionS target/NearDuplicateDetection-1.1-SNAPSHOT.jar --input output_vector.txt --output output-scala-rj
+
+
+hadoop jar target/NearDuplicateDetection-1.1-SNAPSHOT.jar org.NearDuplicateDetection.MinHash -input /Users/lucasmeng/WikiClean/wiki_output.txt -output output-wiki-java-mh
+
+
+hadoop jar target/NearDuplicateDetection-1.1-SNAPSHOT.jar org.NearDuplicateDetection.MinHas-input /shared/uwaterloo/cs451/data/enwiki-20161220-sentences-0.1sample.txt \
+   -output cs451-lintool-a3-index-wiki -reducers 4

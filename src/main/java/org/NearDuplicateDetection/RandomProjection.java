@@ -18,6 +18,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
@@ -66,27 +67,24 @@ public class RandomProjection extends Configured implements Tool {
             String[] tokens = value.toString().split(",");
             String docId = Integer.toString(Float.valueOf(tokens[0]).intValue());
             String stncId = Integer.toString(Float.valueOf(tokens[1]).intValue());
-            String dsId = dosId + ":" + stncId;
+            String dsId = docId + ":" + stncId;
             ArrayList<Double> docVec = new ArrayList<>();
 
             for (int i = 0; i < vecLen; i++) {
-                docVec.add(Double.parseDouble(tokens[i+2));
+                docVec.add(Double.parseDouble(tokens[i+2]));
             }
 
-            System.out.println("Checkpoint 1");
             SENTENCE.set(dsId);
             Random r = new Random(randSeed);
             for (int j = 0; j < permNo; j++){
-                // System.out.println("Checkpoint 2 [" + j);
                 SIGNATURE.clear();
+                SIGNATURE.add(j);
                 for(int i = 0; i < sigLen; i++){
-                    // System.out.println("Checkpoint 3 [" + i);
                     double dp = 0;
                     for (int k = 0; k < vecLen; k++) {
-                        // System.out.println("Checkpoint 4 [" + k);
                         dp += docVec.get(k) * randomVectors.get(i).get(k);
                     }
-                    if (dp > 0) {
+                    if (dp >= 0) {
                         SIGNATURE.add(1);
                     } else {
                         SIGNATURE.add(0);
@@ -94,6 +92,7 @@ public class RandomProjection extends Configured implements Tool {
                 }
                 context.write(SIGNATURE, SENTENCE);
                 Collections.shuffle(docVec, r);
+                // System.out.println(docVec);
                 }
             }
         }
@@ -104,8 +103,9 @@ public class RandomProjection extends Configured implements Tool {
      */
     private static class MyReducer extends Reducer<ArrayListOfIntsWritable, Text, IntWritable, Text> {
         private static final IntWritable KEY = new IntWritable();
-        private static Queue<ArrayListOfIntsWritable> sigs = new ArrayDeque<>();
-        private static Queue<Text> docIds = new ArrayDeque<>();
+        private static final Text VALUE = new Text();
+        private static Queue<ArrayListOfIntsWritable> SIGS = new ArrayDeque<>();
+        private static Queue<Text> DOCS = new ArrayDeque<>();
 
         private int winSize = 10;
         private int threshold = 15;
@@ -121,35 +121,46 @@ public class RandomProjection extends Configured implements Tool {
                 throws IOException, InterruptedException {
 
             Iterator<Text> iter = values.iterator();
+            ArrayListOfIntsWritable k = new ArrayListOfIntsWritable(key);
             while (iter.hasNext()) {
-                Text val = iter.next();
-                Iterator<ArrayListOfIntsWritable> iterator = sigs.iterator();
+                Text val = new Text(iter.next());
 
-                while (iterator.hasNext()) {
-                    ArrayListOfIntsWritable sig = iterator.next();
+                Iterator<ArrayListOfIntsWritable> iterSig = SIGS.iterator();
+                Iterator<Text> iterDoc = DOCS.iterator();
+                while (iterSig.hasNext()) {
+                    ArrayListOfIntsWritable sig = iterSig.next();
+                    Text doc = iterDoc.next();
                     int dist = 0;
-                    for (int i = 0; i < sig.size(); i++) {
+                    for (int i = 1; i < sig.size(); i++) {
                         if (key.get(i) != sig.get(i)) {
                             dist++;
-                        }
-                        if (dist >= threshold) {
-                            break;
+                            if (dist >= threshold) {
+                                break;
+                            }
                         }
                      }
                     if (dist < threshold) {
                         KEY.set(dist);
-                        context.write(KEY, val);
+                        VALUE.set(val.toString() + ", " + doc.toString());
+                        context.write(KEY, VALUE);
                     }
                 }
 
-                if (sigs.size() >= winSize) {
-                    sigs.remove();
-                    docIds.remove();
+                if (SIGS.size() >= winSize) {
+                    SIGS.remove();
+                    DOCS.remove();
                 }
 
-                docIds.add(val);
-                sigs.add(key);
+                SIGS.add(k);
+                DOCS.add(val);
             }
+        }
+    }
+
+    private static final class MyPartitioner extends Partitioner<ArrayListOfIntsWritable, Text> {
+        @Override
+        public int getPartition(ArrayListOfIntsWritable key, Text value, int numReduceTasks) {
+            return (key.hashCode() & Integer.MAX_VALUE) % numReduceTasks;
         }
     }
 
@@ -178,7 +189,7 @@ public class RandomProjection extends Configured implements Tool {
         int permNo = 10;
 
         @Option(name = "-threshold", metaVar = "[num]", usage = "distance threshold")
-        int threshold = 15;
+        int threshold = 5;
 
         @Option(name = "-window", metaVar = "[num]", usage = "window size")
         int winSize = 10;
@@ -244,7 +255,7 @@ public class RandomProjection extends Configured implements Tool {
         job.setMapperClass(MyMapper.class);
         // job.setCombinerClass(MyCombiner.class);
         job.setReducerClass(MyReducer.class);
-        // job.setPartitionerClass(MyPartitioner.class);
+        job.setPartitionerClass(MyPartitioner.class);
 
         // Delete the output directory if it exists already.
         Path outputDir = new Path(args.output);

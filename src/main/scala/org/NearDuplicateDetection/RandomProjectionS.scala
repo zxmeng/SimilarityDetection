@@ -7,7 +7,8 @@ import org.apache.spark.SparkConf
 import org.rogach.scallop._
 import org.apache.spark.Partitioner
 import scala.util.matching.Regex
-import scala.util.Random 
+import scala.util.Random
+import scala.collection.mutable.ListBuffer
 
 import org.NearDuplicateDetection._
 
@@ -21,7 +22,7 @@ class ConfRandProj(args: Seq[String]) extends ScallopConf(args) {
   val permutate = opt[Int](descr = "permutation times", required = false, default = Some(10))
   val threshold = opt[Int](descr = "distance threshold", required = false, default = Some(15))
   val window = opt[Int](descr = "window size", required = false, default = Some(10))
-  val rseed = opt[Int](descr = "random seed", required = false, default = Some(1123456))
+  val rseed = opt[Long](descr = "random seed", required = false, default = Some(1123456))
   verify()
 }
 
@@ -64,64 +65,46 @@ object RandomProjectionS extends {
 
     val textFile = sc.textFile(args.input())
 
-    val r = new scala.util.Random(randSeed)
-    val seeds = new Array[Long](numHashes)
-    for ( i <- 0 to (numHashes - 1) ) {
+    val r = new Random(randSeed)
+    val seeds = new Array[Long](sigLen)
+    for ( i <- 0 to (sigLen - 1) ) {
       seeds(i) = r.nextLong
     }
-    val sigSeed = r.nextLong
+    val randomVectors = new GenerteRandomVectorsS(vecLen, sigLen, seeds).getRandomVectors()
 
     textFile
     .flatMap(line => {
       val tokens = line.split(",")
       val docid = tokens(0)
       val stncid = tokens(1)
-      val page = line.substring(docid.length + 2)
-
-      val matches = pattern.findAllIn(page).toList
-      var sentenceCount = 0
-      matches.flatMap(sentence => {
-        for ( i <- 0 to (minhash.length - 1) ) {
-          minhash(i) = Long.MaxValue
+      val docstncid = docid + ":" + stncid
+      var temp = new ListBuffer[Double]()
+      for (t <- 0 to (tokens.length - 3) ) {
+        temp += tokens(t+2).toDouble
+      }
+      var docVec = temp.toList
+      val r = new Random(randSeed)
+      var key = List[(String, String)]()
+      for (j <- 0 to (permNo - 1) ) {
+        var signature = new Array[Double](sigLen + 1)
+        signature(0) = j
+        for (i <- 0 to (sigLen - 1) ) {
+          var dp = 0.0
+          for (k <- 0 to (vecLen - 1) ) {
+            dp += docVec(k) * randomVectors(i)(k);
+          }
+          if (dp >= 0) {
+            signature(i) = 1
+          } else {
+            signature(i) = 0
+          } 
         }
-        val shingleCount = sentence.length() - shingleLen + 1
-        if (shingleCount > minLen && shingleCount < maxLen) {
-          // val value = sentence + " " + docid + ":" + sentenceCount
-          val value = docid + ":" + sentenceCount + ", " + sentence
-
-          var hashValue = new Array[String](numHashes)
-          for ( i <- 0 to (shingleCount - 1) ) {
-            val shingle = sentence.substring(i, i + shingleLen)
-            val hash = hashFamily.hashStr(shingle) // to implement hashfamily
-
-            for ( j <- 0 to (numHashes - 1) ) {
-              if (hash(j) < minhash(j)) {
-                minhash(j) = hash(j)
-                hashValue(j) = shingle
-              }
-            }
-          }
-
-          val r = new scala.util.Random(sigSeed)
-          var key = List[(String, String)]()
-          for ( j <- 0 to (draw -1) ) {
-            var signature = new Array[Long](sigLen)
-            for (i <- 0 to (sigLen - 1) ) {
-              val x = r.nextInt(numHashes)
-              signature(i) = minhash(x)
-            }
-            key = key ++ List((signature.mkString("[", ",", "]"), value))
-          }
-          sentenceCount += 1
-          key
-        } else List()
-      })
+        key = key ++ List((signature.mkString("[", ",", "]"), docstncid))
+        docVec = r.shuffle(docVec)
+      }
+      key
     })
     .groupByKey()
-    .mapValues(_.toList)
-    .filter(p => (p._2.size > 1))
-    .flatMap(p => (p._2.map(s => (p._1, s))))
-    // .map(p => (p._1, p._2.mkString("[", ",", "]")))
     .saveAsTextFile(args.output())
   }
 }

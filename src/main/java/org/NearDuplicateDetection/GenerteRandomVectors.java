@@ -16,7 +16,6 @@ public class GenerteRandomVectors {
         this.seeds = seeds;
 
         for (int i = 0; i < sigLen; i++) {
-            System.out.println("Generating random vector......\n");
             ArrayList<Double> v = generateUnitRandomVector(seeds[i]);
             randomVectors.add(v);
         }
